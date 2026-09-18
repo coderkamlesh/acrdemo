@@ -5,6 +5,11 @@ on:
     branches: [ Main ]
   workflow_dispatch:
 
+# Ye line add karo - GITHUB_TOKEN ko write permission deta hai
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
