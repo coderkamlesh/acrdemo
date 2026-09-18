@@ -1,16 +1,29 @@
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-21 AS build
+# Stage 1: Build native image with GraalVM 25
+FROM ghcr.io/graalvm/native-image-community:25 AS build
 WORKDIR /app
+
+# Install Maven (native-image image mein bundled nahi hota)
+RUN microdnf install -y tar gzip && \
+    curl -fsSL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz | tar -xz -C /opt && \
+    ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn && \
+    microdnf clean all
+
+# Dependencies pehle copy karo — layer caching ke liye
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
-COPY src ./src
-RUN mvn clean package -DskipTests
 
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre-alpine
+# Source copy karke native binary build karo
+COPY src ./src
+RUN mvn -Pnative native:compile -DskipTests
+
+# Stage 2: Minimal runtime
+FROM oraclelinux:9-slim
 WORKDIR /app
-RUN addgroup -S spring && adduser -S spring -G spring
+
+RUN adduser --system --uid 1001 spring
 USER spring:spring
-COPY --from=build /app/target/*.jar app.jar
+
+COPY --from=build /app/target/acrdemo /app/acrdemo
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/app/acrdemo"]
