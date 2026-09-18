@@ -50,10 +50,14 @@ jobs:
             -g first \
             --secrets ghcr-pat=${{ secrets.GHCR_PAT }}
           
+          az containerapp registry set \
+            -n acrdemo-app \
+            -g first \
+            --server ghcr.io \
+            --username ${{ github.repository_owner }} \
+            --password-secret-ref ghcr-pat
+          
           az containerapp update \
             -n acrdemo-app \
             -g first \
-            --image ghcr.io/${{ github.repository_owner }}/acrdemo:${{ github.sha }} \
-            --registry-server ghcr.io \
-            --registry-username ${{ github.repository_owner }} \
-            --registry-password-secret-ref ghcr-pat
+            --image ghcr.io/${{ github.repository_owner }}/acrdemo:${{ github.sha }}
