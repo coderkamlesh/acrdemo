@@ -45,18 +45,21 @@ jobs:
 
       - name: Deploy to Container Apps
         run: |
+          # Step 1: Secret set karo
           az containerapp secret set \
             -n acrdemo-app \
             -g first \
             --secrets ghcr-pat=${{ secrets.GHCR_PAT }}
-          
+
+          # Step 2: Registry credentials set karo (password me secret ka naam pass karo)
           az containerapp registry set \
             -n acrdemo-app \
             -g first \
             --server ghcr.io \
             --username ${{ github.repository_owner }} \
-            --password-secret-ref ghcr-pat
-          
+            --password secretref:ghcr-pat
+
+          # Step 3: Image update karo
           az containerapp update \
             -n acrdemo-app \
             -g first \
