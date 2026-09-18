@@ -44,5 +44,4 @@ jobs:
           az containerapp update \
             -n acrdemo-app \
             -g first \
-            --image ca5cf566e14dacr.azurecr.io/acrdemo:${{ github.sha }} \
-            --revision-suffix ${{ github.sha }}
+            --image ca5cf566e14dacr.azurecr.io/acrdemo:${{ github.sha }}
