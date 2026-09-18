@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HelloController {
 
-    @GetMapping
+    @GetMapping("/hello")
     ResponseEntity<?> hello(){
         return ResponseEntity.ok("hello from testing");
     }

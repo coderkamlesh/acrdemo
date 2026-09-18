@@ -1,0 +1,28 @@
+properties:
+  template:
+    containers:
+      - name: acrdemo-app
+        image: ca5cf566e14dacr.azurecr.io/acrdemo:latest
+        probes:
+          - type: Startup
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            intervalSeconds: 3
+            timeoutSeconds: 2
+            failureThreshold: 15
+          - type: Readiness
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 0
+            intervalSeconds: 3
+            timeoutSeconds: 2
+            failureThreshold: 3
+          - type: Liveness
+            httpGet:
+              path: /health
+              port: 8080
+            intervalSeconds: 10
+            timeoutSeconds: 2

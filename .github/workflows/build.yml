@@ -24,13 +24,25 @@ jobs:
           username: ${{ secrets.ACR_USERNAME }}
           password: ${{ secrets.ACR_PASSWORD }}
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            ca5cf566e14dacr.azurecr.io/acrdemo:1.0
-            ca5cf566e14dacr.azurecr.io/acrdemo:latest
+            ca5cf566e14dacr.azurecr.io/acrdemo:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp update \
+            -n acrdemo-app \
+            -g first \
+            --image ca5cf566e14dacr.azurecr.io/acrdemo:${{ github.sha }} \
+            --revision-suffix ${{ github.sha }}
