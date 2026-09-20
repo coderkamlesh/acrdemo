@@ -1,6 +1,13 @@
 spring:
   application:
     name: acrdemo
+  main:
+    banner-mode: "off"
+    log-startup-info: false
+
+server:
+  port: 8080
+
 management:
   endpoints:
     web:
@@ -9,20 +16,17 @@ management:
   endpoint:
     health:
       probes:
-        enabled: true          # Enables /actuator/health/liveness & /readiness
+        enabled: true
       group:
         liveness:
           include: livenessState
         readiness:
           include: readinessState
-      show-details: always     # Optional: for debugging
-server:
-  port: 8080                   # Match probe port
+      show-details: never
 
 logging:
   level:
-    root: INFO
-    org:
-      springframework:
-        boot: INFO
-
+    root: WARN
+    org.springframework.boot: WARN
+    org.apache.catalina: WARN
+    org.apache.coyote: WARN

@@ -2,8 +2,8 @@
 FROM ghcr.io/graalvm/native-image-community:25 AS build
 WORKDIR /app
 
-# Install Maven
-RUN microdnf install -y tar gzip && \
+# Install Maven aur binutils (strip command ke liye)
+RUN microdnf install -y tar gzip binutils && \
     curl -fsSL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz | tar -xz -C /opt && \
     ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn && \
     microdnf clean all
@@ -15,9 +15,12 @@ ENV MAVEN_OPTS="-Xmx1024m -XX:+UseSerialGC"
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Source code copy & compile native executable
+# Source copy & compile native executable
 COPY src ./src
 RUN mvn -Pnative native:compile -DskipTests -Dnative.buildArgs="-J-Xmx5120m --no-fallback"
+
+# Strip debug symbols to drastically reduce binary size and memory page-faults
+RUN strip /app/target/acrdemo
 
 # Stage 2: Minimal runtime
 FROM oraclelinux:9-slim
@@ -26,10 +29,10 @@ WORKDIR /app
 # Lambda Web Adapter injection
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter
 
-# Adapter tuning for fast boot
+# Web Adapter configuration for immediate port readiness detection
 ENV PORT=8080
 ENV AWS_LWA_PORT=8080
-ENV AWS_LWA_ASYNC_INIT=true
+ENV AWS_LWA_READINESS_CHECK_PATH=/actuator/health/readiness
 ENV AWS_LWA_READINESS_CHECK_MIN_BEAT=10
 
 RUN adduser --system --uid 1001 spring
@@ -38,4 +41,4 @@ USER spring:spring
 COPY --from=build /app/target/acrdemo /app/acrdemo
 
 EXPOSE 8080
-ENTRYPOINT ["/app/acrdemo"]
+ENTRYPOINT ["/app/acrdemo", "-Djava.security.egd=file:/dev/./urandom"]
