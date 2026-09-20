@@ -18,3 +18,11 @@ management:
       show-details: always     # Optional: for debugging
 server:
   port: 8080                   # Match probe port
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        boot: INFO
+
