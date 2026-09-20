@@ -4,20 +4,18 @@ spring:
   main:
     banner-mode: "off"
     log-startup-info: false
+    lazy-initialization: true
   datasource:
-    url: jdbc:postgresql://first-cluster-34286.j77.aws-ap-south-1.cockroachlabs.cloud:26257/defaultdb
+    url: jdbc:postgresql://first-cluster-34286.j77.aws-ap-south-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require
     username: ${DB_USERNAME:coderkamlesh}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      # CockroachDB serverless wake-up delay handle karne ke liye (5s)
+      initialization-fail-timeout: -1
       connection-timeout: 5000
-      # Lambda context me connection pool chhota rakhna hai
       maximum-pool-size: 2
       minimum-idle: 0
       idle-timeout: 60000
-      max-lifetime: 1800000
-      pool-name: LambdaHikariPool
 
 server:
   port: 8080
