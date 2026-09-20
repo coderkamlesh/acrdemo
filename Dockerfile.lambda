@@ -19,7 +19,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn -Pnative native:compile -DskipTests -Dnative.buildArgs="-J-Xmx5120m --no-fallback"
 
-# Strip debug symbols to drastically reduce binary size and memory page-faults
+# Strip debug symbols
 RUN strip /app/target/acrdemo
 
 # Stage 2: Minimal runtime
@@ -29,10 +29,10 @@ WORKDIR /app
 # Lambda Web Adapter injection
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter
 
-# Web Adapter configuration for immediate port readiness detection
+# Readiness check direct Controller par bind karo (No Actuator dependency)
 ENV PORT=8080
 ENV AWS_LWA_PORT=8080
-ENV AWS_LWA_READINESS_CHECK_PATH=/actuator/health/readiness
+ENV AWS_LWA_READINESS_CHECK_PATH=/health
 ENV AWS_LWA_READINESS_CHECK_MIN_BEAT=10
 
 RUN adduser --system --uid 1001 spring
@@ -41,4 +41,4 @@ USER spring:spring
 COPY --from=build /app/target/acrdemo /app/acrdemo
 
 EXPOSE 8080
-ENTRYPOINT ["/app/acrdemo", "-Djava.security.egd=file:/dev/./urandom"]
+ENTRYPOINT ["/app/acrdemo"]
