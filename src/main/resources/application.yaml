@@ -16,6 +16,9 @@ spring:
       maximum-pool-size: 2
       minimum-idle: 0
       idle-timeout: 60000
+      max-lifetime: 60000          # CRDB/Lambda ke liye short rakho
+      connection-test-query: SELECT 1  # Stale connection detect karo
+      keepalive-time: 30000
 
 server:
   port: 8080
