@@ -23,43 +23,23 @@ public class HealthController {
         return "ok";
     }
 
-    @GetMapping("/")
-    public ResponseEntity<?> index() {
-        try {
-            // 1. Create table if not exists (using CockroachDB INT8 unique_rowid)
-            jdbcTemplate.execute("""
-                CREATE TABLE IF NOT EXISTS app_users (
-                    id INT8 PRIMARY KEY DEFAULT unique_rowid(),
-                    username VARCHAR(50) UNIQUE NOT NULL,
-                    email VARCHAR(100) NOT NULL,
-                    created_at TIMESTAMPTZ DEFAULT clock_timestamp()
-                )
-            """);
+   @GetMapping("/")
+public ResponseEntity<?> index() {
+    try {
+        List<Map<String, Object>> users = jdbcTemplate.queryForList(
+            "SELECT id, username, email, created_at FROM app_users LIMIT 5"
+        );
 
-            // 2. Insert default test user if it doesn't already exist
-            jdbcTemplate.update("""
-                INSERT INTO app_users (username, email)
-                VALUES ('kamlesh', 'kamlesh@example.com')
-                ON CONFLICT (username) DO NOTHING
-            """);
-
-            // 3. Query records to verify read functionality
-            List<Map<String, Object>> users = jdbcTemplate.queryForList(
-                    "SELECT id, username, email, created_at FROM app_users LIMIT 5"
-            );
-
-            return ResponseEntity.ok(Map.of(
-                    "status", true,
-                    "message", "running",
-                    "database", "cockroachdb-connected",
-                    "data", users
-            ));
-        } catch (Exception ex) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "status", false,
-                    "message", "Database operation failed",
-                    "error", ex.getMessage()
-            ));
-        }
+        return ResponseEntity.ok(Map.of(
+            "status", true,
+            "database", "cockroachdb-connected",
+            "data", users
+        ));
+    } catch (Exception ex) {
+        return ResponseEntity.status(500).body(Map.of(
+            "status", false,
+            "error", ex.getMessage()
+        ));
     }
+}
 }
